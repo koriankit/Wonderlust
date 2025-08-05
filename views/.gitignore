@@ -1,0 +1,26 @@
+node_modules
+.env
+# Ignore Node modules and environment files in both frontend and backend
+
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# Editor directories and files
+.vscode/
+.idea/
+
+# Build output
+client/build/
+dist/
+
+
+Wonderlust/node_modules
+Wonderlust.env
