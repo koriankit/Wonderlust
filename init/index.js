@@ -2,7 +2,7 @@ const mongoose = require("mongoose");
 const initData = require("./data.js");
 const Listing = require("../models/listing.js");
 
-const MONGO_URL = "mongodb://127.0.0.1:27017/Wonderlust";
+const MONGO_URL = "mongodb+srv://ankitkori805:0iJr10rvupmNA4xQ@cluster0.6pmxk8q.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0";
 
 main()
   .then(() => {
