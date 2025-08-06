@@ -27,14 +27,15 @@
 
 
 const express = require("express");
-const router = express.Router({ mergeParams: true }); // ✅ Needed to access :id from parent route
-const reviewController = require("../controllers/review.js");
+const router = express.Router({ mergeParams: true }); // Needed to access :id from parent route
+
+const reviewController = require("../controllers/review.js"); // ✅ Make sure this file exists
 const { isLoggedIn, validateReview } = require("../middleware.js");
 
-// ✅ Route to create a new review
+// ✅ Route to create a new review (POST /listings/:id/reviews)
 router.post("/", isLoggedIn, validateReview, reviewController.createReview);
 
-// ✅ Route to delete a review
+// ✅ Route to delete a review (DELETE /listings/:id/reviews/:reviewId)
 router.delete("/:reviewId", isLoggedIn, reviewController.destroyReview);
 
 module.exports = router;
