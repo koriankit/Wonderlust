@@ -1,29 +1,32 @@
+require("dotenv").config(); // ✅ Load environment variables
 const mongoose = require("mongoose");
 const initData = require("./data.js");
 const Listing = require("../models/listing.js");
 
-const MONGO_URL = "mongodb+srv://ankitkori805:0iJr10rvupmNA4xQ@cluster0.6pmxk8q.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0";
-
-main()
-  .then(() => {
-    console.log("connected to DB");
-  })
-  .catch((err) => {
-    console.log(err);
-  });
+const MONGO_URL = process.env.MONGO_URL; // ✅ Use .env variable
 
 async function main() {
-  await mongoose.connect(MONGO_URL);
+  await mongoose.connect(MONGO_URL, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+  });
+  console.log("✅ Connected to MongoDB (Seed)");
 }
 
-const initDB = async () => {
-  await Listing.deleteMany({});
-  initData.data = initData.data.map((obj) => ({
-    ...obj,
-    owner: "6805e65e3870c0d99778ee06",
-  }));
-  await Listing.insertMany(initData.data);
-  console.log("data was initialized");
-};
+main().then(initDB).catch(console.error);
 
-initDB();
+const initDB = async () => {
+  try {
+    await Listing.deleteMany({});
+    initData.data = initData.data.map((obj) => ({
+      ...obj,
+      owner: "6805e65e3870c0d99778ee06", // example owner ID
+    }));
+    await Listing.insertMany(initData.data);
+    console.log("✅ Data was initialized");
+    process.exit(); // Exit after seeding
+  } catch (err) {
+    console.error("❌ Error initializing DB:", err);
+    process.exit(1);
+  }
+};
