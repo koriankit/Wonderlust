@@ -26,16 +26,26 @@
 
 
 
-const express = require("express");
-const router = express.Router({ mergeParams: true }); // Needed to access :id from parent route
+// controllers/reviews.js
 
-const reviewController = require("../controllers/review.js"); // ✅ Make sure this file exists
-const { isLoggedIn, validateReview } = require("../middleware.js");
+const Listing = require("../models/listing");
+const Review = require("../models/review");
 
-// ✅ Route to create a new review (POST /listings/:id/reviews)
-router.post("/", isLoggedIn, validateReview, reviewController.createReview);
+module.exports.createReview = async (req, res) => {
+  let listing = await Listing.findById(req.params.id);
+  let newReview = new Review(req.body.review);
+  newReview.author = req.user._id;
+  listing.reviews.push(newReview);
+  await newReview.save();
+  await listing.save();
+  req.flash("success", "New Review Created!");
+  res.redirect(`/listings/${listing._id}`);
+};
 
-// ✅ Route to delete a review (DELETE /listings/:id/reviews/:reviewId)
-router.delete("/:reviewId", isLoggedIn, reviewController.destroyReview);
-
-module.exports = router;
+module.exports.destroyReview = async (req, res) => {
+  let { id, reviewId } = req.params;
+  await Listing.findByIdAndUpdate(id, { $pull: { reviews: reviewId } });
+  await Review.findByIdAndDelete(reviewId);
+  req.flash("success", "Review Deleted!");
+  res.redirect(`/listings/${id}`);
+};
