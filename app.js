@@ -1,8 +1,6 @@
-if(process.env.NODE_ENV != "production"){
-  require('dotenv').config();
+if (process.env.NODE_ENV !== "production") {
+  require("dotenv").config();
 }
-// console.log(process.env.SECRET);
-
 
 const express = require("express");
 const app = express();
@@ -17,50 +15,39 @@ const passport = require("passport");
 const LocalStrategy = require("passport-local");
 const User = require("./models/user.js");
 
-
 const listingRouter = require("./routes/listing.js");
-const reviewRouter= require("./routes/review.js");
-const userRouter= require("./routes/user.js");
+const reviewRouter = require("./routes/review.js");
+const userRouter = require("./routes/user.js");
 
-const MONGO_URL = "mongodb+srv://ankitkori805:0iJr10rvupmNA4xQ@cluster0.6pmxk8q.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0";
-
-main()
-  .then(() => {
-    console.log("Connected to MongoDB");
-  })
-  .catch((err) => {
-    console.log(err);
-  });
+const MONGO_URL = process.env.MONGO_URL; // ✅ Load from .env
 
 async function main() {
-  await mongoose.connect(MONGO_URL);
+  await mongoose.connect(MONGO_URL, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+  });
+  console.log("✅ Connected to MongoDB");
 }
 
+main().catch((err) => console.error("❌ MongoDB connection error:", err));
 
 app.set("view engine", "ejs");
 app.set("views", path.join(__dirname, "views"));
-app.use(express.urlencoded({ extended: true })); 
+app.use(express.urlencoded({ extended: true }));
 app.use(methodOverride("_method"));
 app.engine("ejs", ejsMate);
 app.use(express.static(path.join(__dirname, "/public")));
-
-
 
 const sessionOptions = {
   secret: "mysupersecretcode",
   resave: false,
   saveUninitialized: true,
   cookie: {
-    expires: Date.now() + 1000 * 60 * 60 * 24 * 7, // 1 week
+    expires: Date.now() + 1000 * 60 * 60 * 24 * 7,
     maxAge: 1000 * 60 * 60 * 24 * 7,
     httpOnly: true,
-  }
+  },
 };
-
-// app.get("/", (req, res) => {
-  // res.send("Hi! I am root ");
-// });
-
 
 app.use(session(sessionOptions));
 app.use(flash());
@@ -68,47 +55,43 @@ app.use(flash());
 app.use(passport.initialize());
 app.use(passport.session());
 passport.use(new LocalStrategy(User.authenticate()));
-
 passport.serializeUser(User.serializeUser());
 passport.deserializeUser(User.deserializeUser());
 
-
-////// middleware of locals/////////
-app.use((req,res,next) => {
+// Flash and current user middleware
+app.use((req, res, next) => {
   res.locals.success = req.flash("success");
   res.locals.error = req.flash("error");
   res.locals.currUser = req.user;
   next();
 });
 
-app.get("/demouser",async(req,res) => {
-  let fakeUser = new User ({
+// Temporary demo route
+app.get("/demouser", async (req, res) => {
+  let fakeUser = new User({
     email: "sadhana@gmail.com",
-    username: "Sadhana"
+    username: "Sadhana",
   });
-
- let registeredUser = await User.register(fakeUser, "Chashmish");
- res.send(registeredUser);
+  let registeredUser = await User.register(fakeUser, "Chashmish");
+  res.send(registeredUser);
 });
 
-
-
-app.use("/listings",listingRouter);
-app.use("/listings/:id/reviews",reviewRouter);
+// Routes
+app.use("/listings", listingRouter);
+app.use("/listings/:id/reviews", reviewRouter);
 app.use("/", userRouter);
 
-
-app.all("/", (req, res, next) => {
+// 404 handler
+app.all("*", (req, res, next) => {
   next(new ExpressError(404, "Page not Found!"));
 });
 
-// Error-handling middleware
+// Error handler
 app.use((err, req, res, next) => {
-  let { statusCode = 500, message = "Something Went Wrong" } = err;
+  const { statusCode = 500, message = "Something Went Wrong" } = err;
   res.status(statusCode).render("error.ejs", { message });
-  //res.status(statusCode).send(message);
 });
 
 app.listen(8080, () => {
-  console.log("server is listening to port 8080");
+  console.log("🚀 Server running on http://localhost:8080");
 });
